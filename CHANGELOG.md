@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## 1.16.0 - 2017-07-14
+- Fix erroneously reverse-order inlining of style imports `<link rel="import" type="css">`.
+- Added `--polymer2` flag that changes some of the rewriting behaviors to support the fact that Polymer 2.x honors the `assetpath` of `<dom-module>` when interpreting style urls:
+  - Disables rewriting urls in inlined html imports containing `<style>` tags inside `<dom-module>` containers.
+  - Include consideration of container `<dom-module>` `assetpath` property when rewriting urls inside inlined style imports.
+
+## 1.15.5 - 2017-06-01
+- Add --out-request-list to bin/vulcanize help message
+
+## 1.15.4 - 2017-03-21
+- `excludes` option now honors JavaScript asset references:
+  - Won't attempt to load the JS (which caused errors when local file not present.)
+  - Won't inline excluded JS files.
+- Added --out-request-list option, which writes a list of request URLs required
+  to vulcanize <html file> to a given file on success.
+
+## 1.15.3 - 2017-01-17
+- Fix for how paths are rewritten in nested import scenarios where paths to same
+  directory were ignored instead of treated as "." for relative path.
+
+## 1.15.2 - 2016-12-16
+- Fix for how assetpath is set when in the same directory, where assetpath attribute
+  for components in same directly were incorrectly set to "/".
+
 ## 1.15.1 - 2016-12-16
 - Amended README and minor text fixes to CHANGELOG post release.
 

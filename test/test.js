@@ -146,7 +146,7 @@ suite('Path Resolver', function() {
       '<script>Polymer({is: "my-element"})</script>'
     ].join('\n');
 
-    var expected = [
+    var expectedPolymer1 = [
       '<html><head><link rel="import" href="polymer/polymer.html">',
       '<link rel="stylesheet" href="my-element/my-element.css">',
       '</head><body><dom-module id="my-element" assetpath="my-element/">',
@@ -158,11 +158,25 @@ suite('Path Resolver', function() {
       '<script>Polymer({is: "my-element"})</script></body></html>'
     ].join('\n');
 
-    var ast = parse(html);
-    pathresolver.resolvePaths(ast, inputPath, outputPath);
+    var ast1 = parse(html);
+    pathresolver.resolvePaths(ast1, inputPath, outputPath);
+    assert.equal(serialize(ast1), expectedPolymer1, 'relative polymer 1 paths');
 
-    var actual = serialize(ast);
-    assert.equal(actual, expected, 'relative');
+    var expectedPolymer2 = [
+      '<html><head><link rel="import" href="polymer/polymer.html">',
+      '<link rel="stylesheet" href="my-element/my-element.css">',
+      '</head><body><dom-module id="my-element" assetpath="my-element/">',
+      '<template>',
+      '<style>:host { background-image: url(background.svg); }</style>',
+      '<div style="position: absolute;"></div>',
+      '</template>',
+      '</dom-module>',
+      '<script>Polymer({is: "my-element"})</script></body></html>'
+    ].join('\n');
+
+    var ast2 = parse(html);
+    pathresolver.resolvePaths(ast2, inputPath, outputPath, true);
+    assert.equal(serialize(ast2), expectedPolymer2, 'relative polymer 2 paths');
   });
 
   test('Resolve Paths with <base>', function() {
@@ -178,7 +192,7 @@ suite('Path Resolver', function() {
       '<script>Polymer({is: "my-element"})</script>'
     ].join('\n');
 
-    var expectedBase = [
+    var expectedBasePolymer1 = [
       '<html><head>',
       '<link rel="import" href="my-element/polymer/polymer.html">',
       '<link rel="stylesheet" href="my-element/zork/my-element.css">',
@@ -190,12 +204,27 @@ suite('Path Resolver', function() {
       '<script>Polymer({is: "my-element"})</script></body></html>'
     ].join('\n');
 
-    var ast = parse(htmlBase);
-    pathresolver.acid(ast, inputPath);
-    pathresolver.resolvePaths(ast, inputPath, outputPath);
+    var ast1 = parse(htmlBase);
+    pathresolver.acid(ast1, inputPath);
+    pathresolver.resolvePaths(ast1, inputPath, outputPath);
+    assert.equal(serialize(ast1), expectedBasePolymer1, 'base polymer 1');
 
-    var actual = serialize(ast);
-    assert.equal(actual, expectedBase, 'base');
+    var expectedBasePolymer2 = [
+      '<html><head>',
+      '<link rel="import" href="my-element/polymer/polymer.html">',
+      '<link rel="stylesheet" href="my-element/zork/my-element.css">',
+      '</head><body><dom-module id="my-element" assetpath="my-element/zork/">',
+      '<template>',
+      '<style>:host { background-image: url(background.svg); }</style>',
+      '</template>',
+      '</dom-module>',
+      '<script>Polymer({is: "my-element"})</script></body></html>'
+    ].join('\n');
+
+    var ast2 = parse(htmlBase);
+    pathresolver.acid(ast2, inputPath, true);
+    pathresolver.resolvePaths(ast2, inputPath, outputPath, true);
+    assert.equal(serialize(ast2), expectedBasePolymer2, 'base polymer 2');
   });
 
   test('Resolve Paths with <base> having a trailing /', function() {
@@ -211,7 +240,7 @@ suite('Path Resolver', function() {
       '<script>Polymer({is: "my-element"})</script>'
     ].join('\n');
 
-    var expectedBase = [
+    var expectedBasePolymer1 = [
       '<html><head>',
       '<link rel="import" href="my-element/polymer/polymer.html">',
       '<link rel="stylesheet" href="my-element/zork/my-element.css">',
@@ -223,12 +252,27 @@ suite('Path Resolver', function() {
       '<script>Polymer({is: "my-element"})</script></body></html>'
     ].join('\n');
 
-    var ast = parse(htmlBase);
-    pathresolver.acid(ast, inputPath);
-    pathresolver.resolvePaths(ast, inputPath, outputPath);
+    var ast1 = parse(htmlBase);
+    pathresolver.acid(ast1, inputPath);
+    pathresolver.resolvePaths(ast1, inputPath, outputPath);
+    assert.equal(serialize(ast1), expectedBasePolymer1, 'base polymer 1');
 
-    var actual = serialize(ast);
-    assert.equal(actual, expectedBase, 'base');
+    var expectedBasePolymer2 = [
+      '<html><head>',
+      '<link rel="import" href="my-element/polymer/polymer.html">',
+      '<link rel="stylesheet" href="my-element/zork/my-element.css">',
+      '</head><body><dom-module id="my-element" assetpath="my-element/zork/">',
+      '<template>',
+      '<style>:host { background-image: url(background.svg); }</style>',
+      '</template>',
+      '</dom-module>',
+      '<script>Polymer({is: "my-element"})</script></body></html>'
+    ].join('\n');
+
+    var ast2 = parse(htmlBase);
+    pathresolver.acid(ast2, inputPath, true);
+    pathresolver.resolvePaths(ast2, inputPath, outputPath, true);
+    assert.equal(serialize(ast2), expectedBasePolymer2, 'base polymer 2');
   });
 
   test('Resolve <base target>', function() {
@@ -265,6 +309,29 @@ suite('Path Resolver', function() {
     assert.equal(actual, base, 'templated urls');
   });
 
+  test('Rewrite assetpath in same directory', function() {
+    var html = [
+      '<dom-module id="my-element" assetpath="./">',
+      '<template>',
+      '</template>',
+      '</dom-module>',
+      '<script>Polymer({is: "my-element"})</script>'
+    ].join('\n');
+
+    var expected = [
+      '<html><head></head><body><dom-module id="my-element" assetpath="">',
+      '<template>',
+      '</template>',
+      '</dom-module>',
+      '<script>Polymer({is: "my-element"})</script></body></html>'
+    ].join('\n');
+
+    var ast = parse(html);
+    pathresolver.resolvePaths(ast, inputPath, inputPath);
+
+    var actual = serialize(ast);
+    assert.equal(actual, expected, 'relative');
+  });
 });
 
 suite('Vulcan', function() {
@@ -715,6 +782,61 @@ suite('Vulcan', function() {
       process(inputPath, callback, options);
     });
 
+    test('Excluded JavaScript is honored', function(done) {
+      var options = {
+        excludes: ["test/html/external/external.js"],
+        inlineScripts: true
+      };
+
+      var callback = function(err, doc) {
+        if (err) {
+          return done(err);
+        }
+        var script = dom5.query(doc,
+          preds.AND(
+            preds.hasTagName('script'),
+            preds.hasAttrValue('src', 'external/external.js')));
+        assert.ok(script);
+        done();
+      }
+      process(path.resolve('test/html/external.html'), callback, options);
+    });
+
+    test('Excluded non-existent script will not attempt load', function(done) {
+      var options = {
+        excludes: ["test/html/non-existent.js"]
+      };
+
+      var callback = function(err) {
+        if (err) {
+          return done(err);
+        }
+        done();
+      }
+      process(path.resolve('test/html/non-existent-script.html'), callback, options);
+    });
+
+    // Not Implemented
+    test.skip('Strip Excludes removes excluded JavaScript', function(done) {
+      var options = {
+        excludes: ["test/html/external/external.js"],
+        stripExcludes: true
+      };
+
+      var callback = function(err, doc) {
+        if (err) {
+          return done(err);
+        }
+        var script = dom5.query(doc,
+          preds.AND(
+            preds.hasTagName('script'),
+            preds.hasAttrValue('src', 'external/external.js')));
+        assert.isNull(script);
+        done();
+      }
+      process(path.resolve('test/html/external.html'), callback, options);
+    });
+
     test('Strip Excludes does not have to be exact', function(done) {
       var options = {
         stripExcludes: ['simple-import']
@@ -1013,13 +1135,16 @@ suite('Vulcan', function() {
         var styles = dom5.queryAll(doc, dom5.predicates.hasTagName('style'));
         var rules = styles.map(function(s) {
           return dom5.serialize(s).trim();
-        }).join('\n').match(/\.[a-z-]+/g);
+        }).join('\n').match(/[:.][a-z-]+ \{/g);
         assert.deepEqual(rules, [
-          '.from-doc-linked-style',
-          '.from-import-linked-style',
-          '.from-import-inline-style',
-          '.from-style-in-doc-head',
-          '.from-style-in-doc-body'
+          '.from-doc-linked-style {',
+          '.from-import-linked-style {',
+          '.from-import-inline-style {',
+          '.from-style-in-doc-head {',
+          '.from-style-in-doc-body {',
+          ':host {',
+          '.rows {',
+          ':root {'
         ]);
         done();
       };
@@ -1100,6 +1225,25 @@ suite('Vulcan', function() {
         assert.deepEqual(contents, expected);
         done();
       }, {inlineScripts: true});
+    });
+
+    test('Assetpath rewriting', function(done) {
+      process('test/html/assetpath/src/app-main/app-main.html', function(err, doc) {
+        if (err) {
+          return done(err);
+        }
+        var domModules = dom5.queryAll(doc, preds.hasTagName('dom-module'));
+        var assetpaths = domModules.map(function(domModule) {
+          return [dom5.getAttribute(domModule, 'id'), dom5.getAttribute(domModule, 'assetpath')];
+        });
+        assert.deepEqual(assetpaths, [
+          ['test-c', '../../bower_components/test-component/'],
+          ['test-b', '../../bower_components/test-component/src/elements/'],
+          ['test-a', '../../bower_components/test-component/'],
+          ['app-main', null]
+        ]);
+        done();
+      });
     });
 
     test('Imports in templates should not inline', function(done) {
